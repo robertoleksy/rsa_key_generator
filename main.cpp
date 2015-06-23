@@ -2,11 +2,12 @@
 #include <chrono>
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
+#include <crypto++/eccrypto.h>
+#include <crypto++/oids.h>
 
 using namespace CryptoPP;
 
-void GenKeyPair(unsigned int keySize)
-{
+void GenKeyPair(unsigned int keySize) {
 	// InvertibleRSAFunction is used directly only because the private key
 	// won't actually be used to perform any cryptographic operation;
 	// otherwise, an appropriate typedef'ed type from rsa.h would have been used.
@@ -44,6 +45,20 @@ void test(unsigned int keySize) {
 	std::chrono::steady_clock::duration diff = stop_time - start_time;
 	std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << "ms" << std::endl;
 }
+
+////////////////ECDSA////////////////
+
+void ECDSAGenKeyPair(unsigned int keySize) {
+	AutoSeededRandomPool rng;
+	DL_GroupParameters_EC<ECP> params(ASN1::secp160r1());
+
+	ECDSA<ECP, SHA1>::PrivateKey privateKey;
+	ECDSA<ECP, SHA1>::PublicKey publicKey;
+
+	privateKey.Initialize(rng, params);
+	privateKey.MakePublicKey(publicKey);
+}
+
 
 int main(int argc, char **argv) {
 	
