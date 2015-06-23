@@ -38,7 +38,16 @@ void GenKeyPair(unsigned int keySize) {
 ////////////////ECDSA////////////////
 
 //http://tools.ietf.org/html/rfc4492
-
+//                     Symmetric  |   ECC   |  DH/DSA/RSA
+//                    ------------+---------+-------------
+//                         80     |   163   |     1024
+//                        112     |   233   |     2048
+//                        128     |   283   |     3072
+//                        192     |   409   |     7680
+//                        256     |   571   |    15360
+// 
+//                   Table 1: Comparable Key Sizes (in bits)
+// 
 void ECDSAGenKeyPair(unsigned int keySize) {
 	AutoSeededRandomPool rng;
 	DL_GroupParameters_EC<ECP> params(ASN1::secp521r1());
@@ -48,9 +57,8 @@ void ECDSAGenKeyPair(unsigned int keySize) {
 	privateKey.Initialize(rng, params);
 	privateKey.MakePublicKey(publicKey);
 	
-	
-	std::cout << "Pub key check : " << publicKey.Validate(rng, 3) << std::endl;
-	std::cout << "Prv key check : " << privateKey.Validate(rng, 3) << std::endl;
+	//std::cout << "Pub key check : " << publicKey.Validate(rng, 3) << std::endl;
+	//std::cout << "Prv key check : " << privateKey.Validate(rng, 3) << std::endl;
 }
 
 
