@@ -4,6 +4,8 @@
 #include <crypto++/osrng.h>
 #include <crypto++/eccrypto.h>
 #include <crypto++/oids.h>
+#include <crypto++/base64.h>
+#include <crypto++/files.h>
 
 using namespace CryptoPP;
 void ECDSAGenKeyPair(unsigned int keySize);
@@ -48,7 +50,7 @@ void GenKeyPair(unsigned int keySize) {
 // 
 //                   Table 1: Comparable Key Sizes (in bits)
 // 
-void ECDSAGenKeyPair(unsigned int keySize) {
+void ECDSAGenKeyPair(unsigned int keySize = 0) {
 	AutoSeededRandomPool rng;
 	DL_GroupParameters_EC<ECP> params(ASN1::secp521r1());
 
@@ -57,8 +59,14 @@ void ECDSAGenKeyPair(unsigned int keySize) {
 	privateKey.Initialize(rng, params);
 	privateKey.MakePublicKey(publicKey);
 	
-	//std::cout << "Pub key check : " << publicKey.Validate(rng, 3) << std::endl;
-	//std::cout << "Prv key check : " << privateKey.Validate(rng, 3) << std::endl;
+	// save keys to files
+	Base64Encoder pubkeysink(new FileSink("key_1.pub"));
+	publicKey.DEREncodePublicKey(pubkeysink);
+	pubkeysink.MessageEnd();
+
+	Base64Encoder prvkeysink(new FileSink("key_1.prv"));
+	privateKey.DEREncodePrivateKey(prvkeysink);
+	prvkeysink.MessageEnd();
 }
 
 
@@ -79,8 +87,9 @@ void test(unsigned int keySize, void (*f)(unsigned int)) {
 
 int main(int argc, char **argv) {
 	
-	test(2048, GenKeyPair);
-	test(4096, ECDSAGenKeyPair);
+	//test(2048, GenKeyPair);
+	//test(4096, ECDSAGenKeyPair);
+	ECDSAGenKeyPair();
 	
     return 0;
 }
