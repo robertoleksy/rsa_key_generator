@@ -11,9 +11,12 @@ void GenKeyPair(unsigned int keySize)
 	// won't actually be used to perform any cryptographic operation;
 	// otherwise, an appropriate typedef'ed type from rsa.h would have been used.
 	AutoSeededRandomPool rng;
-	InvertibleRSAFunction privkey;
-	privkey.Initialize(rng, keySize);
+	InvertibleRSAFunction params;
+	params.GenerateRandomWithKeySize(rng, keySize);
  
+	// Create Keys
+	CryptoPP::RSA::PrivateKey privateKey(params);
+	CryptoPP::RSA::PublicKey publicKey(params);
 	// With the current version of Crypto++, MessageEnd() needs to be called
 	// explicitly because Base64Encoder doesn't flush its buffer on destruction.
 	/*Base64Encoder privkeysink(new FileSink("privkey.txt"));
@@ -22,7 +25,7 @@ void GenKeyPair(unsigned int keySize)
 	 
 	// Suppose we want to store the public key separately,
 	// possibly because we will be sending the public key to a third party.
-	RSAFunction pubkey(privkey);
+	//RSAFunction pubkey(privkey);
 	
 	/*Base64Encoder pubkeysink(new FileSink("pubkey.txt"));
 	pubkey.DEREncode(pubkeysink);
@@ -46,7 +49,7 @@ int main(int argc, char **argv) {
 	
 	test(2048);
 	test(4096);
-	//test(8192);
+	test(8192);
 	
     return 0;
 }
