@@ -6,6 +6,7 @@
 #include <crypto++/oids.h>
 
 using namespace CryptoPP;
+void ECDSAGenKeyPair(unsigned int keySize);
 
 void GenKeyPair(unsigned int keySize) {
 	// InvertibleRSAFunction is used directly only because the private key
@@ -39,7 +40,8 @@ void test(unsigned int keySize) {
 	std::cout << "generate " << numberOfTests << " keys, size = " << keySize << std::endl;
     std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
 	for (int i = 0; i < numberOfTests; ++i) {
-		GenKeyPair(keySize);
+		//GenKeyPair(keySize);
+		ECDSAGenKeyPair(keySize);
 	}
 	std::chrono::time_point<std::chrono::steady_clock> stop_time = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::duration diff = stop_time - start_time;
@@ -52,12 +54,16 @@ void test(unsigned int keySize) {
 
 void ECDSAGenKeyPair(unsigned int keySize) {
 	AutoSeededRandomPool rng;
-	DL_GroupParameters_EC<ECP> params(ASN1::secp160r1());
+	DL_GroupParameters_EC<ECP> params(ASN1::secp521r1());
 
 	ECDSA<ECP, SHA1>::PrivateKey privateKey;
 	ECDSA<ECP, SHA1>::PublicKey publicKey;
 	privateKey.Initialize(rng, params);
 	privateKey.MakePublicKey(publicKey);
+	
+	
+	std::cout << "Pub key check : " << publicKey.Validate(rng, 3) << std::endl;
+	std::cout << "Prv key check : " << privateKey.Validate(rng, 3) << std::endl;
 }
 
 
