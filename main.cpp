@@ -48,13 +48,14 @@ void test(unsigned int keySize) {
 
 ////////////////ECDSA////////////////
 
+//http://tools.ietf.org/html/rfc4492
+
 void ECDSAGenKeyPair(unsigned int keySize) {
 	AutoSeededRandomPool rng;
 	DL_GroupParameters_EC<ECP> params(ASN1::secp160r1());
 
 	ECDSA<ECP, SHA1>::PrivateKey privateKey;
 	ECDSA<ECP, SHA1>::PublicKey publicKey;
-
 	privateKey.Initialize(rng, params);
 	privateKey.MakePublicKey(publicKey);
 }
