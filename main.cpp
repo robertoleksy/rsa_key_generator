@@ -35,19 +35,6 @@ void GenKeyPair(unsigned int keySize) {
  
 }
 
-void test(unsigned int keySize) {
-	const int numberOfTests = 5;
-	std::cout << "generate " << numberOfTests << " keys, size = " << keySize << std::endl;
-    std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
-	for (int i = 0; i < numberOfTests; ++i) {
-		//GenKeyPair(keySize);
-		ECDSAGenKeyPair(keySize);
-	}
-	std::chrono::time_point<std::chrono::steady_clock> stop_time = std::chrono::steady_clock::now();
-	std::chrono::steady_clock::duration diff = stop_time - start_time;
-	std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << "ms" << std::endl;
-}
-
 ////////////////ECDSA////////////////
 
 //http://tools.ietf.org/html/rfc4492
@@ -67,11 +54,25 @@ void ECDSAGenKeyPair(unsigned int keySize) {
 }
 
 
+
+void test(unsigned int keySize, void (*f)(unsigned int)) {
+	const int numberOfTests = 5;
+	std::cout << "generate " << numberOfTests << " keys, size = " << keySize << std::endl;
+    std::chrono::time_point<std::chrono::steady_clock> start_time = std::chrono::steady_clock::now();
+	for (int i = 0; i < numberOfTests; ++i) {
+		//GenKeyPair(keySize);
+		//ECDSAGenKeyPair(keySize);
+		f(keySize);
+	}
+	std::chrono::time_point<std::chrono::steady_clock> stop_time = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::duration diff = stop_time - start_time;
+	std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << "ms" << std::endl;
+}
+
 int main(int argc, char **argv) {
 	
-	test(2048);
-	test(4096);
-	test(8192);
+	test(2048, GenKeyPair);
+	test(4096, ECDSAGenKeyPair);
 	
     return 0;
 }
