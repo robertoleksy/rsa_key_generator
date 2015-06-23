@@ -1,5 +1,7 @@
 #include <iostream>
 #include <chrono>
+#include <string>
+
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
 #include <crypto++/eccrypto.h>
@@ -63,13 +65,42 @@ void ECDSAGenKeyPair(unsigned int keySize = 0) {
 	Base64Encoder pubkeysink(new FileSink("key_1.pub"));
 	publicKey.DEREncodePublicKey(pubkeysink);
 	pubkeysink.MessageEnd();
-
 	Base64Encoder prvkeysink(new FileSink("key_1.prv"));
 	privateKey.DEREncodePrivateKey(prvkeysink);
 	prvkeysink.MessageEnd();
 }
 
 
+void ECDSASignFile(const std::string &filename) {
+	ECDSA<ECP, SHA1>::PrivateKey privateKey;
+	ByteQueue bytes;
+	std::cout << "start load prv key" << std::endl;
+	FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
+	std::cout << "transfer prv key to bytes" << std::endl;
+	prvKeyFile.TransferTo(bytes);
+	//bytes.MessageEnd();
+	std::cout << "load bytes" << std::endl;
+	privateKey.Load(bytes);
+	std::cout << "end of load prv key" << std::endl;
+	
+	std::cout << "start load clear file" << std::endl;
+	std::string strContents;
+	FileSource(filename.c_str(), true, new StringSink(strContents));
+	
+	AutoSeededRandomPool rng;
+	ECDSA<ECP, SHA1>::Signer signer(privateKey);
+	SecByteBlock sbbSignature(signer.SignatureLength());
+	std::cout << "sign message" << std::endl;
+	signer.SignMessage(rng,
+		(byte const*) strContents.data(),
+		strContents.size(),
+		sbbSignature);
+	
+	std::cout << "Save result" << std::endl;
+	FileSink sinksig(std::string(filename + ".sig").c_str());
+	sinksig.Put(sbbSignature, sbbSignature.size());
+	sinksig.MessageSeriesEnd();
+}
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
 	const int numberOfTests = 5;
@@ -90,6 +121,7 @@ int main(int argc, char **argv) {
 	//test(2048, GenKeyPair);
 	//test(4096, ECDSAGenKeyPair);
 	ECDSAGenKeyPair();
-	
+	std::cout << "sign test.txt" << std::endl;
+	ECDSASignFile("test.txt");
     return 0;
 }
