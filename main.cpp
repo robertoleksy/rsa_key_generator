@@ -62,32 +62,51 @@ void ECDSAGenKeyPair(unsigned int keySize = 0) {
 	privateKey.MakePublicKey(publicKey);
 	
 	// save keys to files
-	Base64Encoder pubkeysink(new FileSink("key_1.pub"));
+	/*Base64Encoder pubkeysink(new FileSink("key_1.pub"));
 	publicKey.DEREncodePublicKey(pubkeysink);
-	pubkeysink.MessageEnd();
-	Base64Encoder prvkeysink(new FileSink("key_1.prv"));
-	privateKey.DEREncodePrivateKey(prvkeysink);
-	prvkeysink.MessageEnd();
+	pukeysink.MessageEnd();*/
+	ByteQueue pubKeyBytes;
+	publicKey.Save(pubKeyBytes);
+	Base64Encoder publicKeyEncoder(new FileSink("key_1.pub"));
+	pubKeyBytes.CopyTo(publicKeyEncoder);
+	publicKeyEncoder.MessageEnd();
+	
+	
+	ByteQueue prvKeyBytes;
+	privateKey.Save(prvKeyBytes);
+	Base64Encoder prvKeyEncoder(new FileSink("key_1.prv"));
+	prvKeyBytes.CopyTo(prvKeyEncoder);
+	prvKeyEncoder.MessageEnd();
+	
+	/*FileSink fs( "key_1.prv", false);
+	privateKey.Save(fs);*/
 }
 
 
 void ECDSASignFile(const std::string &filename) {
+	AutoSeededRandomPool rng;
+	// load rivate key
 	ECDSA<ECP, SHA1>::PrivateKey privateKey;
 	ByteQueue bytes;
+	Base64Decoder decoder;
 	std::cout << "start load prv key" << std::endl;
+	//FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
 	FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
-	std::cout << "transfer prv key to bytes" << std::endl;
+// 	std::cout << "transfer prv key to bytes" << std::endl;
 	prvKeyFile.TransferTo(bytes);
-	//bytes.MessageEnd();
-	std::cout << "load bytes" << std::endl;
-	privateKey.Load(bytes);
-	std::cout << "end of load prv key" << std::endl;
+	//prvKeyFile.
+	bytes.MessageEnd();
+// 	std::cout << "load bytes" << std::endl;
+	//privateKey.Load(bytes);
 	
-	std::cout << "start load clear file" << std::endl;
+	//bytes.CopyTo(decoder);
+	privateKey.Load(prvKeyFile);
+	std::cout << "end of load prv key" << std::endl;
+	std::cout << "validate prv key " << privateKey.Validate(rng, 3);
+	/*std::cout << "start load clear file" << std::endl;
 	std::string strContents;
 	FileSource(filename.c_str(), true, new StringSink(strContents));
 	
-	AutoSeededRandomPool rng;
 	ECDSA<ECP, SHA1>::Signer signer(privateKey);
 	SecByteBlock sbbSignature(signer.SignatureLength());
 	std::cout << "sign message" << std::endl;
@@ -99,7 +118,7 @@ void ECDSASignFile(const std::string &filename) {
 	std::cout << "Save result" << std::endl;
 	FileSink sinksig(std::string(filename + ".sig").c_str());
 	sinksig.Put(sbbSignature, sbbSignature.size());
-	sinksig.MessageSeriesEnd();
+	sinksig.MessageSeriesEnd();*/
 }
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
