@@ -196,12 +196,12 @@ bool ECDSAVerifyFile2(const std::string &clearFilename, const std::string &signa
 	inputFile >> word;
 	unsigned int signatureSize = std::stoi(word);
 	std::cout << "signature size = " << signatureSize << std::endl;
+	
 	std::shared_ptr<char> signature(new char[signatureSize]); // raw signature
 	char a;
 	inputFile.read(&a, 1); // read '\n'
 	inputFile.read(signature.get(), signatureSize);
 	std::cout << "end of load sig file" << std::endl;
-	
 	// load input file
 	std::cout << "start load clear file" << std::endl;
 	std::string sourceData;
@@ -209,16 +209,30 @@ bool ECDSAVerifyFile2(const std::string &clearFilename, const std::string &signa
 	
 	std::string combined(sourceData);
 	combined.append(signature.get(), signatureSize);
-	
+	// load pub key
+	ECDSA<ECP, SHA512>::PublicKey publicKey;
 	try {
-		ECDSA<ECP, SHA512>::PublicKey publicKey = ECDSALoadPubKey(pubFileName);
+		publicKey = ECDSALoadPubKey(pubFileName);
 	}
 	catch (std::runtime_error ex) {
-		std::cout << "PUB KEY LOAD ERROR " << ex.what() << std::endl;;
+		std::cout << "PUB KEY LOAD ERROR " << ex.what() << std::endl;
+		return false;
 	}
 	
-	return false;
+	std::cout << "start verify" << std::endl;
+	ECDSA<ECP, SHA512>::Verifier verifier(publicKey);
+	try {
+		StringSource(combined, true,
+			new SignatureVerificationFilter(verifier, NULL, SignatureVerificationFilter::THROW_EXCEPTION));
+		std::cout << "verify OK" << std::endl;
+		return true;
+	}
+	catch (SignatureVerificationFilter::SignatureVerificationFailed &err) {
+		std::cout << "verify error " << err.what() << std::endl;
+		return false;
+	}
 }
+
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
 	const int numberOfTests = 5;
@@ -238,9 +252,11 @@ int main(int argc, char **argv) {
 	
 	//test(2048, GenKeyPair);
 	//test(4096, ECDSAGenKeyPair);
-	ECDSAGenKeyPair();
-	std::cout << "sign test.txt" << std::endl;
-	ECDSASignFile("test.txt");
-	ECDSAVerifyFile("test.txt", "test.txt.sig");
+	//ECDSAGenKeyPair();
+	//std::cout << "sign test.txt" << std::endl;
+	//ECDSASignFile("test.txt");
+	//ECDSAVerifyFile("test.txt", "test.txt.sig");
+	std::cout << "ECDSAVerifyFile2 " << ECDSAVerifyFile2("test.txt", "test.txt.sig2") << std::endl;
+	
     return 0;
 }
