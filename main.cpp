@@ -88,21 +88,21 @@ void ECDSASignFile(const std::string &filename) {
 	// load rivate key
 	ECDSA<ECP, SHA1>::PrivateKey privateKey;
 	ByteQueue bytes;
-	Base64Decoder decoder;
 	std::cout << "start load prv key" << std::endl;
-	//FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
 	FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
-// 	std::cout << "transfer prv key to bytes" << std::endl;
 	prvKeyFile.TransferTo(bytes);
-	//prvKeyFile.
 	bytes.MessageEnd();
-// 	std::cout << "load bytes" << std::endl;
-	//privateKey.Load(bytes);
+ 	std::cout << "load bytes" << std::endl;
+	privateKey.Load(bytes);
 	
 	//bytes.CopyTo(decoder);
-	privateKey.Load(prvKeyFile);
 	std::cout << "end of load prv key" << std::endl;
-	std::cout << "validate prv key " << privateKey.Validate(rng, 3);
+	std::cout << "validate prv key " << std::endl;
+	if (privateKey.Validate(rng, 3) == false) {
+		std::cout << "prv key validate error";
+		return;
+	}
+	std::cout << "prv key validate OK" << std::endl;
 	/*std::cout << "start load clear file" << std::endl;
 	std::string strContents;
 	FileSource(filename.c_str(), true, new StringSink(strContents));
