@@ -85,7 +85,7 @@ void ECDSAGenKeyPair(unsigned int keySize = 0) {
 
 void ECDSASignFile(const std::string &filename) {
 	AutoSeededRandomPool rng;
-	// load rivate key
+	// load private key
 	ECDSA<ECP, SHA1>::PrivateKey privateKey;
 	ByteQueue bytes;
 	std::cout << "start load prv key" << std::endl;
@@ -122,6 +122,42 @@ void ECDSASignFile(const std::string &filename) {
 	sinksig.MessageSeriesEnd();
 }
 
+void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFileName) {
+	AutoSeededRandomPool rng;
+	// load pub key from file
+	std::string pubKeyFilename("key_1.pub");
+	std::cout << "load pub key form " << pubKeyFilename << std::endl;
+	CryptoPP::ByteQueue bytes;
+	ECDSA<ECP, SHA1>::PublicKey publicKey;
+	FileSource file(pubKeyFilename.c_str(), true, new Base64Decoder);
+	file.TransferTo(bytes);
+	bytes.MessageEnd();
+	publicKey.Load(bytes);
+	if (publicKey.Validate(rng, 3) == false) {
+		std::cout << "pub key validate error";
+		return;
+	}
+	std::cout << "pub key validate OK" << std::endl;
+
+	std::string signature, clearData;
+	ECDSA<ECP, SHA1>::Verifier verifier(publicKey);
+	std::cout << "load clear text file " << filename << std::endl;
+	FileSource(filename.c_str(), true, new StringSink(clearData));
+	std::cout << "load signature from file " << signatureFileName << std::endl;
+	FileSource(signatureFileName.c_str(), true, new StringSink(signature));
+	std::string combined(clearData);
+	combined.append(signature);
+	std::cout << "start verify" << std::endl;
+	try {
+		StringSource(combined, true,
+			new SignatureVerificationFilter(verifier, NULL, SignatureVerificationFilter::THROW_EXCEPTION));
+		std::cout << "verify OK" << std::endl;
+	}
+	catch (SignatureVerificationFilter::SignatureVerificationFailed &err) {
+		std::cout << "verify error " << err.what() << std::endl;
+	}
+}
+
 void test(unsigned int keySize, void (*f)(unsigned int)) {
 	const int numberOfTests = 5;
 	std::cout << "generate " << numberOfTests << " keys, size = " << keySize << std::endl;
@@ -143,5 +179,6 @@ int main(int argc, char **argv) {
 	ECDSAGenKeyPair();
 	std::cout << "sign test.txt" << std::endl;
 	ECDSASignFile("test.txt");
+	ECDSAVerifyFile("test.txt", "test.txt.sig");
     return 0;
 }
