@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <string>
+#include <fstream>
 
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
@@ -120,6 +121,14 @@ void ECDSASignFile(const std::string &filename) {
 	FileSink sinksig(std::string(filename + ".sig").c_str());
 	sinksig.Put(sbbSignature, sbbSignature.size());
 	sinksig.MessageSeriesEnd();
+	
+	std::ofstream sig2File(filename + ".sig2"); // XXX new sig format
+	std::cout << "save new firmat to " << sig2File << std::endl;
+	std::string pubKeyFilename("key_1.pub"); // TODO generate name
+	sig2File << "PubKeyFilename " << pubKeyFilename << std::endl;
+	sig2File << "Crypto ECDSA" << std::endl;
+	sig2File << "SignatureSize " << sbbSignature.size() << std::endl;
+	sig2File.write((const char*)sbbSignature.data(), sbbSignature.size());
 }
 
 void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFileName) {
@@ -156,6 +165,11 @@ void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFi
 	catch (SignatureVerificationFilter::SignatureVerificationFailed &err) {
 		std::cout << "verify error " << err.what() << std::endl;
 	}
+}
+
+// verify file using new format (sig2)
+bool ECDSAVerifyFile2(const std::string &filename, const std::string &signatureFileName) {
+	
 }
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
