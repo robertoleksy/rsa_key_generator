@@ -2,6 +2,7 @@
 #include <chrono>
 #include <string>
 #include <fstream>
+#include <exception>
 
 #include <crypto++/rsa.h>
 #include <crypto++/osrng.h>
@@ -166,10 +167,25 @@ void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFi
 	}
 }
 
+ECDSA<ECP, SHA512>::PublicKey ECDSALoadPubKey(const std::string &pubKeyFilename) {
+	std::cout << "start load ECDSA pub key from " << pubKeyFilename << std::endl;
+	AutoSeededRandomPool rng;
+	CryptoPP::ByteQueue bytes;
+	ECDSA<ECP, SHA512>::PublicKey publicKey;
+	FileSource file(pubKeyFilename.c_str(), true, new Base64Decoder);
+	file.TransferTo(bytes);
+	bytes.MessageEnd();
+	publicKey.Load(bytes);
+	if (publicKey.Validate(rng, 3) == false) {
+		throw std::runtime_error("pub key verification error");
+	}
+	return publicKey;
+}
+
 // verify file using new format (sig2)
 // signatureFileName == sig2 file
-bool ECDSAVerifyFile2(const std::string &filename, const std::string &signatureFileName) {
-	std::cout << "start verify file " << filename << " using " << signatureFileName << std::endl;
+bool ECDSAVerifyFile2(const std::string &clearFilename, const std::string &signatureFileName) {
+	std::cout << "start verify file " << clearFilename << " using " << signatureFileName << std::endl;
 	std::ifstream inputFile(signatureFileName);
 	std::string word;
 	inputFile >> word; // "PubKeyFilename"
@@ -185,6 +201,22 @@ bool ECDSAVerifyFile2(const std::string &filename, const std::string &signatureF
 	inputFile.read(&a, 1); // read '\n'
 	inputFile.read(signature.get(), signatureSize);
 	std::cout << "end of load sig file" << std::endl;
+	
+	// load input file
+	std::cout << "start load clear file" << std::endl;
+	std::string sourceData;
+	FileSource(clearFilename.c_str(), true, new StringSink(sourceData));
+	
+	std::string combined(sourceData);
+	combined.append(signature.get(), signatureSize);
+	
+	try {
+		ECDSA<ECP, SHA512>::PublicKey publicKey = ECDSALoadPubKey(pubFileName);
+	}
+	catch (std::runtime_error ex) {
+		std::cout << "PUB KEY LOAD ERROR " << ex.what() << std::endl;;
+	}
+	
 	return false;
 }
 
