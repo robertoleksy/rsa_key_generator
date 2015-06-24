@@ -103,7 +103,8 @@ void ECDSASignFile(const std::string &filename) {
 		return;
 	}
 	std::cout << "prv key validate OK" << std::endl;
-	/*std::cout << "start load clear file" << std::endl;
+
+	std::cout << "start load clear file" << std::endl;
 	std::string strContents;
 	FileSource(filename.c_str(), true, new StringSink(strContents));
 	
@@ -118,7 +119,7 @@ void ECDSASignFile(const std::string &filename) {
 	std::cout << "Save result" << std::endl;
 	FileSink sinksig(std::string(filename + ".sig").c_str());
 	sinksig.Put(sbbSignature, sbbSignature.size());
-	sinksig.MessageSeriesEnd();*/
+	sinksig.MessageSeriesEnd();
 }
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
