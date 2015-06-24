@@ -56,8 +56,8 @@ void ECDSAGenKeyPair(unsigned int keySize = 0) {
 	AutoSeededRandomPool rng;
 	DL_GroupParameters_EC<ECP> params(ASN1::secp521r1());
 
-	ECDSA<ECP, SHA1>::PrivateKey privateKey;
-	ECDSA<ECP, SHA1>::PublicKey publicKey;
+	ECDSA<ECP, SHA512>::PrivateKey privateKey;
+	ECDSA<ECP, SHA512>::PublicKey publicKey;
 	privateKey.Initialize(rng, params);
 	privateKey.MakePublicKey(publicKey);
 	
@@ -86,7 +86,7 @@ void ECDSAGenKeyPair(unsigned int keySize = 0) {
 void ECDSASignFile(const std::string &filename) {
 	AutoSeededRandomPool rng;
 	// load private key
-	ECDSA<ECP, SHA1>::PrivateKey privateKey;
+	ECDSA<ECP, SHA512>::PrivateKey privateKey;
 	ByteQueue bytes;
 	std::cout << "start load prv key" << std::endl;
 	FileSource prvKeyFile("key_1.prv", true, new Base64Decoder);
@@ -108,7 +108,7 @@ void ECDSASignFile(const std::string &filename) {
 	std::string strContents;
 	FileSource(filename.c_str(), true, new StringSink(strContents));
 	
-	ECDSA<ECP, SHA1>::Signer signer(privateKey);
+	ECDSA<ECP, SHA512>::Signer signer(privateKey);
 	SecByteBlock sbbSignature(signer.SignatureLength());
 	std::cout << "sign message" << std::endl;
 	signer.SignMessage(rng,
@@ -128,7 +128,7 @@ void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFi
 	std::string pubKeyFilename("key_1.pub");
 	std::cout << "load pub key form " << pubKeyFilename << std::endl;
 	CryptoPP::ByteQueue bytes;
-	ECDSA<ECP, SHA1>::PublicKey publicKey;
+	ECDSA<ECP, SHA512>::PublicKey publicKey;
 	FileSource file(pubKeyFilename.c_str(), true, new Base64Decoder);
 	file.TransferTo(bytes);
 	bytes.MessageEnd();
@@ -140,7 +140,7 @@ void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFi
 	std::cout << "pub key validate OK" << std::endl;
 
 	std::string signature, clearData;
-	ECDSA<ECP, SHA1>::Verifier verifier(publicKey);
+	ECDSA<ECP, SHA512>::Verifier verifier(publicKey);
 	std::cout << "load clear text file " << filename << std::endl;
 	FileSource(filename.c_str(), true, new StringSink(clearData));
 	std::cout << "load signature from file " << signatureFileName << std::endl;
