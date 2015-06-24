@@ -126,7 +126,6 @@ void ECDSASignFile(const std::string &filename) {
 	std::cout << "save new firmat to " << sig2File << std::endl;
 	std::string pubKeyFilename("key_1.pub"); // TODO generate name
 	sig2File << "PubKeyFilename " << pubKeyFilename << std::endl;
-	sig2File << "Crypto ECDSA" << std::endl;
 	sig2File << "SignatureSize " << sbbSignature.size() << std::endl;
 	sig2File.write((const char*)sbbSignature.data(), sbbSignature.size());
 }
@@ -168,8 +167,25 @@ void ECDSAVerifyFile(const std::string &filename, const std::string &signatureFi
 }
 
 // verify file using new format (sig2)
+// signatureFileName == sig2 file
 bool ECDSAVerifyFile2(const std::string &filename, const std::string &signatureFileName) {
-	
+	std::cout << "start verify file " << filename << " using " << signatureFileName << std::endl;
+	std::ifstream inputFile(signatureFileName);
+	std::string word;
+	inputFile >> word; // "PubKeyFilename"
+	std::string pubFileName;
+	inputFile >> pubFileName;
+	std::cout << "PubKeyFilename " << pubFileName << std::endl;
+	inputFile >> word; // "SignatureSize"
+	inputFile >> word;
+	unsigned int signatureSize = std::stoi(word);
+	std::cout << "signature size = " << signatureSize << std::endl;
+	std::shared_ptr<char> signature(new char[signatureSize]); // raw signature
+	char a;
+	inputFile.read(&a, 1); // read '\n'
+	inputFile.read(signature.get(), signatureSize);
+	std::cout << "end of load sig file" << std::endl;
+	return false;
 }
 
 void test(unsigned int keySize, void (*f)(unsigned int)) {
